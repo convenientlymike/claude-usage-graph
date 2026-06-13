@@ -12,6 +12,8 @@ only, so it's safe to put on your profile.
 
 [![CI](https://github.com/convenientlymike/claude-usage-graph/actions/workflows/ci.yml/badge.svg)](https://github.com/convenientlymike/claude-usage-graph/actions/workflows/ci.yml)
 &nbsp;
+[![npm](https://img.shields.io/npm/v/claude-usage-graph?logo=npm&color=CB3837&labelColor=09090F)](https://www.npmjs.com/package/claude-usage-graph)
+&nbsp;
 [![License: MIT](https://img.shields.io/badge/License-MIT-22D3EE.svg?labelColor=09090F)](LICENSE)
 &nbsp;
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=09090F)
@@ -84,7 +86,7 @@ renders identically everywhere.
 npx github:convenientlymike/claude-usage-graph --png --stats
 
 # Or install globally:
-npm i -g claude-usage-graph         # (after publish) — or: npm i -g github:convenientlymike/claude-usage-graph
+npm i -g claude-usage-graph         # then: claude-usage-graph --png
 claude-usage-graph --theme github -o card.svg --png
 ```
 

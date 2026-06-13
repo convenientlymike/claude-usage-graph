@@ -1,0 +1,54 @@
+{
+  "name": "claude-usage-graph",
+  "version": "0.1.0",
+  "description": "Turn your Claude Code token usage into a beautiful 3D isometric calendar — a GitHub-contribution-style card from your local session transcripts. Aggregate counts only, zero required runtime deps.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ccusage",
+    "tokens",
+    "usage",
+    "isometric",
+    "calendar",
+    "contribution-graph",
+    "svg",
+    "readme",
+    "cli",
+    "portfolio"
+  ],
+  "license": "MIT",
+  "author": "convenientlymike",
+  "homepage": "https://github.com/convenientlymike/claude-usage-graph",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/convenientlymike/claude-usage-graph.git"
+  },
+  "type": "module",
+  "bin": {
+    "claude-usage-graph": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"require('fs').chmodSync('dist/cli.js',0o755)\"",
+    "prepare": "npm run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "dev": "tsx src/cli.ts"
+  },
+  "optionalDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

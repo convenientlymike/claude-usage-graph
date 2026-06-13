@@ -1,0 +1,49 @@
+name: CI
+
+# Cross-OS by default: claude-usage-graph must run on macOS, Linux, and Windows,
+# so the full matrix is the gate. The core is pure TypeScript (no browser, no
+# system libraries); PNG output uses the optional, prebuilt @resvg/resvg-js.
+#
+# Cost note: this is a PUBLIC repo, so Actions minutes are free. docs-only changes
+# skip CI and a new push cancels the superseded run anyway (good habit).
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**", "LICENSE", ".gitignore"]
+  pull_request:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test

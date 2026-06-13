@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# logs / scratch
+*.log
+.DS_Store
+
+# local renders (the tool's own output — don't commit accidental cards)
+*.svg
+*.png
+!docs/**/*.svg
+!docs/**/*.png
+!examples/**/*.svg
+!examples/**/*.png
+
+# env / secrets (none expected, but never commit them)
+.env
+.env.*

@@ -9,6 +9,9 @@ import {
   dayTotal,
   renderSVG,
   renderPNG,
+  computeCost,
+  rateFor,
+  fmtUSD,
   THEMES,
   type AggregateJson,
 } from "../src/index.js";
@@ -69,6 +72,46 @@ test("every theme renders", () => {
     const svg = renderSVG(agg, { theme: name });
     assert.ok(svg.includes(THEMES[name].ramp[3]), `${name} uses its ramp`);
   }
+});
+
+test("rateFor resolves model families to verified list rates", () => {
+  assert.equal(rateFor("claude-opus-4-8").input, 5);
+  assert.equal(rateFor("claude-opus-4-8").output, 25);
+  assert.equal(rateFor("claude-opus-4-1").input, 15); // pre-4.5 Opus
+  assert.equal(rateFor("claude-sonnet-4-6").output, 15);
+  assert.equal(rateFor("claude-haiku-4-5-20251001").input, 1);
+  assert.equal(rateFor("claude-3-5-haiku").input, 0.8);
+  assert.equal(rateFor("totally-unknown-model").input, 3); // sonnet-tier fallback
+});
+
+test("computeCost: input at input rate, output+cache at output rate — pinned", () => {
+  const agg = fromJson(SAMPLE);
+  // opus-4-8 [12,24,36,4500] @ in5/out25 ; sonnet-4-6 [4,8,7,350] @ in3/out15
+  // cache (cacheCreate + cacheRead) is priced as OUTPUT.
+  const expected =
+    (12 * 5 + (24 + 36 + 4500) * 25) / 1e6 + (4 * 3 + (8 + 7 + 350) * 15) / 1e6;
+  assert.ok(Math.abs(computeCost(agg).usd - expected) < 1e-9, "cache-as-output cost");
+  assert.equal(computeCost(agg).perModel[0].model, "claude-opus-4-8");
+});
+
+test("fmtUSD formats across magnitudes", () => {
+  assert.equal(fmtUSD(4920), "$4,920");
+  assert.equal(fmtUSD(47234.5), "$47,235");
+  assert.equal(fmtUSD(3.5), "$3.50");
+  assert.equal(fmtUSD(0.0008), "$0.0008");
+  assert.equal(fmtUSD(2_500_000), "$2.50M");
+});
+
+test("renderSVG shows the USD by default, omits it when off, and prints NO pricing caveat on the card", () => {
+  const agg = fromJson(SAMPLE);
+  const svg = renderSVG(agg);
+  assert.ok(svg.includes("$"), "USD shown by default");
+  assert.ok(svg.includes(fmtUSD(computeCost(agg).usd)), "shows the computed figure");
+  // the card itself must carry no pricing/basis caveat text
+  for (const banned of ["list price", "API", "input+output", "all-in", "subscription", "cache"]) {
+    assert.equal(svg.includes(banned), false, `card must not mention "${banned}"`);
+  }
+  assert.equal(renderSVG(agg, { costMode: "off" }).indexOf("$"), -1, "no USD when off");
 });
 
 test("renderPNG works when @resvg/resvg-js is available (else skips)", async (t) => {

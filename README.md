@@ -54,6 +54,11 @@ renders identically everywhere.
 - **🧊 3D isometric calendar** — one cube per day; **height + color** scale with that
   day's token volume (√-scaled so a 50× peak doesn't flatten the quiet days). Plus a hero
   stat — **total · active days · daily average · peak day** — and a per-model split bar.
+- **💵 Dollar value** — converts your tokens to USD at Anthropic's list API prices (per
+  model: Opus / Sonnet / Haiku, verified 2026-06). **Cache tokens are priced as output
+  tokens** — input at the input rate, everything else (output + cache) at the output rate.
+  The card shows a clean figure; `--cost off` hides it. (List price for scale, not a
+  subscription bill — that caveat lives in the docs, not on the image.)
 - **🔒 Aggregate counts only** — reads token counts, timestamps, and the model id; never
   project names, file paths, prompts, or content. `--emit-json` writes *exactly* what gets
   rendered so you can audit what you share. **Safe for a public profile by construction.**
@@ -109,6 +114,7 @@ and writes `claude-usage.svg` to the current directory.
     --png            also write a PNG (needs the optional @resvg/resvg-js)
 -s, --scale <n>      PNG device scale (default 3 — crisp on Retina)
     --theme <name>   brand (default) · github · amber · mono
+    --cost <mode>    USD figure (list price): io (input+output, default) · all-in · off
     --title <text>   header title
     --dir <path>     transcripts dir (default ~/.claude/projects)
     --json <file>    render from an emitted/compatible JSON instead of transcripts
@@ -132,6 +138,22 @@ render from it on any machine. No network calls, no telemetry.
 
 > Heads up: like `ccusage`, the total is dominated by **cache-read** tokens — that's normal
 > for Claude Code (every turn re-reads cached context). The `--stats` view breaks it down.
+
+## 💵 What the dollar figure means
+
+The USD is computed at **Anthropic's list API prices**, per model (e.g. Opus 4.5+ at
+`$5 / $25` per Mtok input/output, Sonnet at `$3 / $15`, Haiku 4.5 at `$1 / $5`; verified
+2026-06 from the [pricing page](https://platform.claude.com/docs/en/about-claude/pricing)).
+
+- **Cache is priced as output.** `cost = input × inputRate + (output + cacheCreate +
+  cacheRead) × outputRate`. Anthropic's cheaper cache rates are deliberately *not* applied,
+  so it's a simple, on-the-high-side figure rather than a precise metered cost.
+- It is **not your bill.** If you're on a Claude Pro/Max *subscription*, you pay a flat
+  fee — this is the equivalent list-price value, shown for scale. `--cost off` hides it.
+- The **card shows only the dollar number** — this basis note is kept here in the docs,
+  off the image, on purpose.
+
+`--stats` prints it. Rates live in [`src/pricing.ts`](src/pricing.ts).
 
 ## 🏗 How it works
 

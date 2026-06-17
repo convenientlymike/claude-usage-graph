@@ -20,3 +20,11 @@ export {
 
 export { renderSVG, fmt, THEMES, type Theme, type RenderOptions } from "./render.js";
 export { renderPNG } from "./png.js";
+export {
+  computeCost,
+  rateFor,
+  fmtUSD,
+  DEFAULT_RATE,
+  type Rate,
+  type CostBreakdown,
+} from "./pricing.js";

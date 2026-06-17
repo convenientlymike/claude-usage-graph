@@ -12,6 +12,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { aggregateDir, fromJson, toJson, defaultDir, grandTotal, dayTotal, type Aggregate } from "./aggregate.js";
 import { renderSVG, fmt, THEMES } from "./render.js";
 import { renderPNG } from "./png.js";
+import { computeCost, fmtUSD } from "./pricing.js";
 
 const VERSION = "0.1.0";
 const C = { r: "\x1b[0m", b: "\x1b[1m", d: "\x1b[2m", c: "\x1b[36m", g: "\x1b[32m", y: "\x1b[33m" };
@@ -29,6 +30,7 @@ ${p("OPTIONS", C.b)}
       --png            also write a PNG next to the SVG (needs @resvg/resvg-js)
   -s, --scale <n>      PNG device scale (default 3 — crisp on Retina)
       --theme <name>   brand (default) · github · amber · mono
+      --cost <on|off>  show the USD cost figure on the card (default on)
       --title <text>   header title (default "CLAUDE CODE · TOKEN USAGE")
       --dir <path>     transcripts dir (default ${p("~/.claude/projects", C.d)})
       --json <file>    render from a previously emitted/compatible JSON instead of transcripts
@@ -63,10 +65,12 @@ function printStats(agg: Aggregate): void {
   const grand = grandTotal(agg);
   const [i, ou, cc, cr] = agg.totals;
   const days = Object.keys(agg.byDay).length;
+  const usd = computeCost(agg).usd;
   process.stdout.write(
     `\n${p("Claude Code token usage", C.b)}  ${p(agg.minDate, C.d)} → ${p(agg.maxDate, C.d)}\n` +
       `  total       ${p(fmt(grand), C.b + C.c)}  (${days} active days, ${agg.messages} turns)\n` +
       `  input ${fmt(i)} · output ${fmt(ou)} · cache-create ${fmt(cc)} · cache-read ${p(fmt(cr), C.y)}\n` +
+      `  cost        ${p(fmtUSD(usd), C.g)}  ${p("(list price, cache priced as output; not a subscription bill)", C.d)}\n` +
       `  by model:\n` +
       Object.keys(agg.byModel)
         .map((m) => ({ m, t: dayTotal(agg.byModel[m]) }))
@@ -86,6 +90,10 @@ async function main(): Promise<void> {
   }
   if (a.theme && !THEMES[a.theme as string]) {
     process.stderr.write(`unknown theme '${a.theme}'. options: ${Object.keys(THEMES).join(", ")}\n`);
+    process.exit(2);
+  }
+  if (a.cost && !["on", "off"].includes(a.cost as string)) {
+    process.stderr.write(`unknown --cost '${a.cost}'. options: on, off\n`);
     process.exit(2);
   }
 
@@ -113,7 +121,7 @@ async function main(): Promise<void> {
   }
 
   const out = (a.out as string) || "claude-usage.svg";
-  const svg = renderSVG(agg, { theme: a.theme as string, title: a.title as string });
+  const svg = renderSVG(agg, { theme: a.theme as string, title: a.title as string, costMode: (a.cost as "on" | "off") ?? "on" });
   const svgPath = out.endsWith(".png") ? out.replace(/\.png$/, ".svg") : out;
   writeFileSync(svgPath, svg);
   process.stderr.write(`${p("✓", C.g)} wrote ${svgPath}  ${p(fmt(grandTotal(agg)) + " tokens", C.d)}\n`);

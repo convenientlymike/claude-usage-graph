@@ -58,6 +58,11 @@
       <option value="amber">amber</option>
       <option value="mono">mono</option>
     </select>
+    <label for="costmode" style="margin-left:8px">Cost</label>
+    <select id="costmode">
+      <option value="on">show cost</option>
+      <option value="off">hide cost</option>
+    </select>
     <label for="title" style="margin-left:8px">Title</label>
     <input id="title" value="CLAUDE CODE · TOKEN USAGE" style="background:#11161f;color:var(--text);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:13px;min-width:220px;" />
     <button class="primary" id="dl">⬇ Download SVG</button>
@@ -106,6 +111,11 @@ function cube(cx,cy,h,top){const left=darken(top,0.7),right=darken(top,0.52);
 function prettyModel(id){let m=id.match(/(opus|sonnet|haiku)[-_]?(\d+)[-_.](\d+)/i);if(m)return m[1][0].toUpperCase()+m[1].slice(1)+" "+m[2]+"."+m[3];m=id.match(/(opus|sonnet|haiku)/i);if(m)return m[1][0].toUpperCase()+m[1].slice(1);if(id==="unknown")return"Other";return id.replace(/^claude[-_]?/i,"").replace(/[-_]/g," ")||id;}
 const mAbbr=d=>["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+d.slice(5,7)-1];
 const monWd=d=>{const x=new Date(d+"T00:00:00");return(x.getDay()+6)%7;};
+// pricing (USD per MTok, verified 2026-06). cache is priced as OUTPUT; list price, not a subscription bill.
+const RATES={opus45:{i:5,o:25},opus4:{i:15,o:75},sonnet:{i:3,o:15},haiku45:{i:1,o:5},haiku35:{i:0.8,o:4},fable5:{i:10,o:50}};
+function rateFor(id){const m=id.toLowerCase();const v=m.match(/(\d+)[-.](\d+)/);const M=v?+v[1]:0,N=v?+v[2]:0;if(m.includes("opus"))return(M>4||(M===4&&N>=5))?RATES.opus45:RATES.opus4;if(m.includes("sonnet"))return RATES.sonnet;if(m.includes("haiku"))return M===3?RATES.haiku35:RATES.haiku45;if(m.includes("fable")||m.includes("mythos"))return RATES.fable5;return RATES.sonnet;}
+function computeCost(byModel,totals){let usd=0;const ks=Object.keys(byModel);for(const m of ks){const q=byModel[m],r=rateFor(m);usd+=(q[0]*r.i+(q[1]+q[2]+q[3])*r.o)/1e6;}if(!ks.length&&totals){const r=RATES.sonnet;usd=(totals[0]*r.i+(totals[1]+totals[2]+totals[3])*r.o)/1e6;}return usd;}
+function fmtUSD(n){if(n>=1e6)return"$"+(n/1e6).toFixed(2)+"M";if(n>=1000)return"$"+Math.round(n).toLocaleString("en-US");if(n>=1)return"$"+n.toFixed(2);return"$"+n.toFixed(4);}
 
 function renderSVG(j,opts){
   opts=opts||{};const t=THEMES[opts.theme]||THEMES.brand;
@@ -141,6 +151,8 @@ function renderSVG(j,opts){
   o.push(`<text x="${PAD+16}" y="38" fill="${t.accent}" font-size="13" font-weight="700" letter-spacing="2">${esc(title)}</text>`);
   o.push(`<text x="${PAD}" y="84" fill="${t.accent2}" font-family="${MONO}" font-size="44" font-weight="700">${fmt(grand)}</text>`);
   o.push(`<text x="${PAD+fmt(grand).length*26+8}" y="84" fill="${t.sub}" font-size="16">tokens</text>`);
+  const cost=opts.costMode==="off"?null:computeCost(byModel,totals);
+  if(cost!=null)o.push(`<text x="${PAD+fmt(grand).length*26+8+52}" y="84" fill="${t.accent}" font-family="${MONO}" font-size="28" font-weight="700">${esc(fmtUSD(cost))}</text>`);
   const sub=`since ${mAbbr(minDate)} ${+minDate.slice(8,10)}, ${minDate.slice(0,4)} · ${days.length} active days · ~${fmt(avg)}/day · peak ${+peakK.slice(5,7)}/${+peakK.slice(8,10)} ${fmt(peakV)}`;
   o.push(`<text x="${PAD}" y="108" fill="${t.sub}" font-size="12.5">${esc(sub)}</text>`);
   const mbX=PAD,mbY=122,mbW=Math.min(360,cardW-2*PAD),mbH=9;
@@ -166,10 +178,11 @@ function render(){
   let data;
   try{ data=JSON.parse($("in").value); }
   catch(e){ $("err").textContent="Invalid JSON: "+e.message; return; }
-  try{ lastSVG=renderSVG(data,{theme:$("theme").value,title:$("title").value}); $("out").innerHTML=lastSVG; }
+  try{ lastSVG=renderSVG(data,{theme:$("theme").value,title:$("title").value,costMode:$("costmode").value}); $("out").innerHTML=lastSVG; }
   catch(e){ $("err").textContent=e.message; }
 }
-["theme","title","in"].forEach(id=>$(id).addEventListener("input",render));
+["theme","costmode","title","in"].forEach(id=>$(id).addEventListener("input",render));
+$("costmode").addEventListener("change",render);
 $("dl").addEventListener("click",()=>{
   if(!lastSVG)return;
   const blob=new Blob([lastSVG],{type:"image/svg+xml"});const a=document.createElement("a");

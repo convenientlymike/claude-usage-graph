@@ -6,6 +6,14 @@ All notable changes to claude-usage-graph are documented here. The format is bas
 
 ## [Unreleased]
 
+### Added
+- **USD cost** — converts token usage to a dollar figure at Anthropic's list API prices
+  (per-model rates in `src/pricing.ts`, verified 2026-06). **Cache tokens are priced as
+  output tokens** (input at input rate; output + cache at output rate). Shown as a clean
+  number on the card hero — no pricing caveat printed on the image (it lives in the docs).
+  `--cost off` hides it; `--stats` prints it. New exports: `computeCost`, `rateFor`,
+  `fmtUSD`, `Rate`, `CostBreakdown`. Playground gains a show/hide cost toggle.
+
 ## [0.1.0] — 2026-06-12
 
 Initial release.

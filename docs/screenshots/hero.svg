@@ -7,6 +7,7 @@
 <text x="40" y="38" fill="#A78BFA" font-size="13" font-weight="700" letter-spacing="2">CLAUDE CODE · TOKEN USAGE</text>
 <text x="24" y="84" fill="#22D3EE" font-family="'SF Mono','JetBrains Mono',ui-monospace,Menlo,monospace" font-size="44" font-weight="700">1.28B</text>
 <text x="162" y="84" fill="#8B949E" font-size="16">tokens</text>
+<text x="214" y="84" fill="#A78BFA" font-family="'SF Mono','JetBrains Mono',ui-monospace,Menlo,monospace" font-size="28" font-weight="700">$30,891</text>
 <text x="24" y="108" fill="#8B949E" font-size="12.5">since May 1, 2026 · 38 active days · ~29.8M/day · peak 6/1 285.1M</text>
 <rect x="24" y="122" width="360" height="9" rx="4" fill="#161B22"/>
 <rect x="24.0" y="122" width="208.8" height="9" fill="#8B5CF6"/>
@@ -65,5 +66,5 @@
 <rect x="96" y="291" width="11" height="11" rx="2" fill="#8B5CF6"/>
 <rect x="110" y="291" width="11" height="11" rx="2" fill="#22D3EE"/>
 <text x="126" y="300" fill="#8B949E" font-size="11">more</text>
-<text x="536" y="300" fill="#61686f" font-size="10.5" text-anchor="end">aggregate counts · updated Jun 12, 2026</text>
+<text x="536" y="300" fill="#61686f" font-size="10.5" text-anchor="end">aggregate counts · updated Jun 16, 2026</text>
 </svg>

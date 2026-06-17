@@ -7,6 +7,7 @@
  */
 import type { Aggregate } from "./aggregate.js";
 import { dayTotal, grandTotal } from "./aggregate.js";
+import { computeCost, fmtUSD } from "./pricing.js";
 
 export interface Theme {
   empty: string;
@@ -52,6 +53,8 @@ export const THEMES: Record<string, Theme> = {
 export interface RenderOptions {
   theme?: string;
   title?: string;
+  /** Show the USD cost figure on the card: "on" (default) · "off". */
+  costMode?: "on" | "off";
   /** Override the "now" used for the footer date (mainly for deterministic tests). */
   now?: Date;
 }
@@ -222,6 +225,15 @@ export function renderSVG(agg: Aggregate, opts: RenderOptions = {}): string {
   o.push(`<text x="${PAD}" y="84" fill="${t.accent2}" font-family="${MONO}" font-size="44" font-weight="700">${fmt(grand)}</text>`);
   const bnW = fmt(grand).length * 26;
   o.push(`<text x="${PAD + bnW + 8}" y="84" fill="${t.sub}" font-size="16">tokens</text>`);
+
+  // USD figure (cache priced as output, per pricing.ts). By design, NO pricing/basis
+  // caveat is printed on the card itself; just the dollar number next to the tokens.
+  const cost = opts.costMode === "off" ? null : computeCost(agg);
+  if (cost) {
+    const ux = PAD + bnW + 8 + 52;
+    o.push(`<text x="${ux}" y="84" fill="${t.accent}" font-family="${MONO}" font-size="28" font-weight="700">${esc(fmtUSD(cost.usd))}</text>`);
+  }
+
   const sub = `since ${monthAbbr(agg.minDate)} ${Number(agg.minDate.slice(8, 10))}, ${agg.minDate.slice(0, 4)} · ${activeDays} active days · ~${fmt(avg)}/day · peak ${Number(peakK.slice(5, 7))}/${Number(peakK.slice(8, 10))} ${fmt(peakV)}`;
   o.push(`<text x="${PAD}" y="108" fill="${t.sub}" font-size="12.5">${esc(sub)}</text>`);
 
